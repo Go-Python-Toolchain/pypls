@@ -9,7 +9,7 @@ h = [*head, *tail]
 i = func(1, 2, key=3, *args, **kwargs)
 j = -x ** 2
 k = ~flags & mask | bit
-m = a << 2 >> 1
+m = flags << 2 >> 1
 n = value @ matrix
 p = "implicit" "string" "concat"
 q = b"bytes" rb"raw bytes"

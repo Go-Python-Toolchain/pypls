@@ -11,17 +11,27 @@ Source text moves through a small set of stages, each in its own package under `
 3. `ast` defines the tree node types.
 4. `parser` turns the token stream into an abstract syntax tree.
 5. `diagnostic` defines the shape of a reported problem, mirroring the Language Server Protocol.
-6. `analyzer` runs the pipeline and returns diagnostics for a file.
+6. `types` defines the type lattice and the rules for combining and comparing types.
+7. `checker` performs local type inference and reports type problems.
+8. `analyzer` runs the pipeline and returns diagnostics for a file.
 
-Later stages (type inference, caching, and the language server) build on these foundations without changing them.
+Later stages (caching and the language server) build on these foundations without changing them.
 
 ## Diagnostics
 
 A diagnostic carries a source range, a severity, a short code, and a message. The range comes straight from the token or node that caused the problem, so an editor can underline exactly the offending text. Severities follow the Language Server Protocol numbering, which lets the same value be printed on the command line or sent to an editor without translation.
 
-The `analyzer` package is the single entry point that turns source into diagnostics. Today it reports syntax problems. Type diagnostics will be added to the same function so that callers never need to change.
+The `analyzer` package is the single entry point that turns source into diagnostics. It reports syntax problems from the parser and type problems from the checker, so callers get everything from one call.
 
-A full check of a generated ten thousand line file, covering both parsing and diagnostics, runs in roughly twenty milliseconds.
+A full check of a generated ten thousand line file, covering parsing, type inference, and diagnostics, runs in roughly twenty milliseconds.
+
+## Type inference
+
+The `checker` package infers types locally: within a function or module it reasons from literals, assignments, annotations, and a small set of builtin constructors such as `int` and `str`. It does not resolve imports or cross-module types yet.
+
+The guiding rule is to stay silent when a type is not known. Unknown types are treated as compatible with everything, so untyped code produces no diagnostics at all. The checker only reports a problem when it is confident: an annotated assignment whose value has a clearly incompatible builtin type, or a binary operation between two known builtin types that Python does not allow, such as adding a string to an integer. This keeps the signal high and false positives near zero.
+
+The type lattice in the `types` package is coarse on purpose: scalars, the common containers, callables, and an explicit Unknown. Numeric widening follows Python, so an integer fits where a float is expected and a bool fits where an int is expected.
 
 ## Positions
 
