@@ -1,0 +1,17 @@
+# Compiled binaries
+/pypls
+/pypls.exe
+*.test
+*.out
+
+# Release artifacts
+/dist/
+
+# Editor and OS noise
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Local cache used by pypls at runtime
+/.pypls-cache/
