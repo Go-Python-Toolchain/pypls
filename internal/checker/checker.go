@@ -32,6 +32,49 @@ func Check(mod *ast.Module) []diagnostic.Diagnostic {
 	return c.diags
 }
 
+// ModuleScope builds the module-level name bindings without reporting
+// diagnostics and without descending into function or class bodies. Incremental
+// analysis uses it to give each unit the same module context it would have in a
+// whole-module check.
+func ModuleScope(mod *ast.Module) map[string]*types.Type {
+	c := &Checker{}
+	c.push()
+	for _, s := range mod.Body {
+		c.bindTopLevel(s)
+	}
+	return c.scopes[0]
+}
+
+func (c *Checker) bindTopLevel(s ast.Stmt) {
+	switch st := s.(type) {
+	case *ast.Assign:
+		vt := c.infer(st.Value)
+		for _, target := range st.Targets {
+			c.assignTarget(target, vt)
+		}
+	case *ast.AnnAssign:
+		if name, ok := st.Target.(*ast.Name); ok {
+			c.define(name.Id, c.annType(st.Annotation))
+		}
+	case *ast.FunctionDef:
+		c.define(st.Name, &types.Type{Kind: types.Callable, Name: st.Name})
+	case *ast.ClassDef:
+		c.define(st.Name, &types.Type{Kind: types.Callable, Name: st.Name})
+	}
+}
+
+// CheckUnit type-checks a single top-level statement using the given module
+// scope as context. It is the unit of work for incremental analysis.
+func CheckUnit(unit ast.Stmt, scope map[string]*types.Type) []diagnostic.Diagnostic {
+	c := &Checker{}
+	c.push()
+	for k, v := range scope {
+		c.scopes[0][k] = v
+	}
+	c.checkStmt(unit)
+	return c.diags
+}
+
 func (c *Checker) push() { c.scopes = append(c.scopes, map[string]*types.Type{}) }
 func (c *Checker) pop()  { c.scopes = c.scopes[:len(c.scopes)-1] }
 

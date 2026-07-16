@@ -8,7 +8,7 @@ pypls is part of the [Go-Python Toolchain](https://github.com/Go-Python-Toolchai
 
 ## Status
 
-Early development. The command line skeleton and build pipeline are in place. Parser, diagnostics, type engine, and the language server are being built in order. Track progress in the issues and releases.
+Active development. The parser, syntax and type diagnostics, a persistent cache, and the language server are in place and working. Distribution and packaging are next. Track progress in the issues and releases.
 
 ## Install
 
@@ -40,7 +40,17 @@ found, so it fits cleanly into continuous integration.
 Results are cached on disk under your cache directory, so unchanged files are not
 rechecked. Pass `--no-cache` to check everything from scratch.
 
-More commands land as the language server comes online.
+### Editor integration
+
+pypls is also a language server. Point your editor's Python language client at:
+
+```
+pypls lsp
+```
+
+It speaks the Language Server Protocol over stdin and stdout, publishes syntax
+and type diagnostics as you type, re-checks only the parts of a file that
+changed, and offers basic completion.
 
 ## Design
 

@@ -14,9 +14,8 @@ Source text moves through a small set of stages, each in its own package under `
 6. `types` defines the type lattice and the rules for combining and comparing types.
 7. `checker` performs local type inference and reports type problems.
 8. `cache` is a persistent store that lets unchanged inputs skip recomputation.
-9. `analyzer` runs the pipeline and returns diagnostics for a file.
-
-Later stages (the language server) build on these foundations without changing them.
+9. `analyzer` runs the pipeline and returns diagnostics for a file, and drives incremental re-analysis as a document is edited.
+10. `lsp` is the language server that speaks to editors.
 
 ## Diagnostics
 
@@ -41,6 +40,16 @@ The `cache` package is a persistent key-value store backed by BadgerDB, kept und
 The `analyzer` uses the cache to skip work: a check result is stored under the hash of the file's content, so an unchanged file is served from the cache and any edit produces a new key that misses and is recomputed. On a ten thousand line file this turns a full check of around twenty milliseconds into a cache hit of well under a millisecond.
 
 The cache is defensive. A read or decode failure is treated as a miss rather than an error, and a cache directory that cannot be opened is reset and recreated once, so a damaged cache slows the tool down at worst rather than breaking it. This same store will later hold resolved types for the standard library and popular packages, so that heavy cross-module analysis is done once and reused.
+
+## Incremental analysis
+
+When a file is edited, parsing is always rerun because it is cheap and gives fresh, correct positions. The expensive type work is where incremental analysis pays off. The analyzer splits the module into top-level units, one per top-level statement, and remembers each unit's diagnostics keyed by the hash of its text. On the next edit, a unit whose text is unchanged is served from memory, and its diagnostics are shifted to the unit's new line and byte position, which is exact because the unit's internal layout has not changed. Only the units that actually changed are type-checked again. Editing one function in a file of many re-checks exactly that one function.
+
+## Language server
+
+The `lsp` package speaks JSON-RPC 2.0 over standard input and output. It implements the core of the protocol: the initialize and shutdown lifecycle, open, change, and close notifications for documents, diagnostics publishing, and completion. Each open document keeps its own incremental analyzer, so edits are cheap. Internal positions, which use one-based lines and rune columns, are converted to the protocol's zero-based lines and UTF-16 character offsets on the way out.
+
+The server is safe for concurrent use. Document state is guarded by a read-write mutex, and writes to the connection are serialized, so the read loop and the file watcher can run at the same time. A file watcher based on fsnotify notices Python files that change on disk outside the editor and republishes their diagnostics, while leaving files that are open in the editor to the editor. Starting the server and answering the initialize request takes a few microseconds, well under the ten millisecond target.
 
 ## Positions
 

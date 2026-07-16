@@ -50,7 +50,16 @@ func hashSource(source string) string {
 // reports syntax problems from the parser and type problems from the checker.
 func Check(file, source string) []diagnostic.Diagnostic {
 	mod, errs := parser.Parse(file, source)
+	diags := syntaxDiagnostics(errs)
+	if mod != nil {
+		diags = append(diags, checker.Check(mod)...)
+	}
+	sortDiagnostics(diags)
+	return diags
+}
 
+// syntaxDiagnostics converts parser errors into diagnostics.
+func syntaxDiagnostics(errs []parser.Error) []diagnostic.Diagnostic {
 	diags := make([]diagnostic.Diagnostic, 0, len(errs))
 	for _, e := range errs {
 		diags = append(diags, diagnostic.Diagnostic{
@@ -61,11 +70,11 @@ func Check(file, source string) []diagnostic.Diagnostic {
 			Message:  e.Msg,
 		})
 	}
+	return diags
+}
 
-	if mod != nil {
-		diags = append(diags, checker.Check(mod)...)
-	}
-
+// sortDiagnostics orders diagnostics by start position.
+func sortDiagnostics(diags []diagnostic.Diagnostic) {
 	sort.SliceStable(diags, func(i, j int) bool {
 		a, b := diags[i].Range.Start, diags[j].Range.Start
 		if a.Line != b.Line {
@@ -73,5 +82,4 @@ func Check(file, source string) []diagnostic.Diagnostic {
 		}
 		return a.Column < b.Column
 	})
-	return diags
 }

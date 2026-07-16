@@ -4,6 +4,7 @@ go 1.23.0
 
 require (
 	github.com/dgraph-io/badger/v4 v4.9.4
+	github.com/fsnotify/fsnotify v1.10.1
 	github.com/spf13/cobra v1.10.2
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 )
