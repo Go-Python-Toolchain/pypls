@@ -1,0 +1,21 @@
+a = 1 + 2 * 3 - 4 / 5
+b = (1 + 2) * (3 - 4)
+c = not a and b or not c
+d = a if b else c if d else e
+e = [1, 2, 3][0]
+f = obj.attr.method().chain[0]
+g = {**base, "k": v, **extra}
+h = [*head, *tail]
+i = func(1, 2, key=3, *args, **kwargs)
+j = -x ** 2
+k = ~flags & mask | bit
+m = a << 2 >> 1
+n = value @ matrix
+p = "implicit" "string" "concat"
+q = b"bytes" rb"raw bytes"
+r = 0xDEADBEEF + 0o777 + 0b1010 + 1_000_000
+s = 3.14e-10 + 2j
+t = ...
+u = x[a:b, c:d]
+v = [i for row in matrix for i in row if i]
+w = {key: value for key, value in items.items()}
