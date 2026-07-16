@@ -40,6 +40,22 @@ found, so it fits cleanly into continuous integration.
 Results are cached on disk under your cache directory, so unchanged files are not
 rechecked. Pass `--no-cache` to check everything from scratch.
 
+### Configuration
+
+pypls reads settings from the `[tool.pypls]` table of the nearest
+`pyproject.toml`, so there is no new config file to add. Every key is optional.
+
+```toml
+[tool.pypls]
+python = "python3.12"        # the interpreter the project targets
+venv = ".venv"               # the project's virtual environment
+strict = true                # treat warnings as failures for the exit status
+exclude = ["build", "*.gen.py"]  # files and directories to skip
+```
+
+The `--config` flag points at a specific `pyproject.toml`, and `--strict`
+enables strict mode from the command line.
+
 ### Editor integration
 
 pypls is also a language server. Point your editor's Python language client at:
