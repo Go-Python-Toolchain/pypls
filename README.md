@@ -12,7 +12,15 @@ Active development. The parser, syntax and type diagnostics, a persistent cache,
 
 ## Install
 
-While pre-release, build from source:
+The easiest way is the Python launcher, which downloads the native binary for
+your platform on first use:
+
+```
+pip install pypls-client
+pypls version
+```
+
+Or build from source:
 
 ```
 git clone https://github.com/Go-Python-Toolchain/pypls
@@ -21,7 +29,7 @@ go build -o pypls .
 ./pypls version
 ```
 
-Requires Go 1.22 or newer.
+Building from source requires Go 1.22 or newer.
 
 ## Usage
 
