@@ -28,7 +28,13 @@ Requires Go 1.22 or newer.
 ```
 pypls --help
 pypls version
+pypls check path/to/file.py
+pypls check src/
 ```
+
+`check` parses the given files or directories and reports any problems it finds,
+one per line, as `file:line:column: severity: message`. It exits with a non-zero
+status when any error is found, so it fits cleanly into continuous integration.
 
 More commands land as the type checker and language server come online.
 

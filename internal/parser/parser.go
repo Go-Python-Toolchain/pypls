@@ -13,14 +13,16 @@ import (
 	"github.com/Go-Python-Toolchain/pypls/internal/token"
 )
 
-// Error is a syntax error at a source position.
+// Error is a syntax error covering a source range. Start is inclusive and End
+// is exclusive. For errors without a natural width, End equals Start.
 type Error struct {
-	Pos token.Position
-	Msg string
+	Start token.Position
+	End   token.Position
+	Msg   string
 }
 
 func (e Error) Error() string {
-	return fmt.Sprintf("%s: %s", e.Pos, e.Msg)
+	return fmt.Sprintf("%s: %s", e.Start, e.Msg)
 }
 
 // Parser holds the state for parsing one file.
@@ -36,7 +38,7 @@ func Parse(file, source string) (*ast.Module, []Error) {
 	toks, lexErrs := lexer.New(file, source).Tokenize()
 	p := &Parser{toks: toks}
 	for _, le := range lexErrs {
-		p.errs = append(p.errs, Error{Pos: le.Pos, Msg: le.Msg})
+		p.errs = append(p.errs, Error{Start: le.Pos, End: le.Pos, Msg: le.Msg})
 	}
 	mod := p.parseModule()
 	return mod, p.errs
@@ -68,7 +70,7 @@ func (p *Parser) expect(t token.Type) (token.Token, bool) {
 	if p.at(t) {
 		return p.advance(), true
 	}
-	p.errorf(p.cur().Start, "expected %s, found %s", t, describe(p.cur()))
+	p.errorTok(p.cur(), "expected %s, found %s", t, describe(p.cur()))
 	return p.cur(), false
 }
 
@@ -84,7 +86,13 @@ func (p *Parser) spanFrom(start token.Position) ast.Span {
 }
 
 func (p *Parser) errorf(pos token.Position, format string, args ...any) {
-	p.errs = append(p.errs, Error{Pos: pos, Msg: fmt.Sprintf(format, args...)})
+	p.errs = append(p.errs, Error{Start: pos, End: pos, Msg: fmt.Sprintf(format, args...)})
+}
+
+// errorTok records an error covering the full span of a token, which gives the
+// most useful range for editors and command line output.
+func (p *Parser) errorTok(t token.Token, format string, args ...any) {
+	p.errs = append(p.errs, Error{Start: t.Start, End: t.End, Msg: fmt.Sprintf(format, args...)})
 }
 
 func describe(t token.Token) string {
@@ -502,7 +510,7 @@ func (p *Parser) expectLineEnd() {
 	if p.at(token.EOF) || p.at(token.DEDENT) {
 		return
 	}
-	p.errorf(p.cur().Start, "expected end of line, found %s", describe(p.cur()))
+	p.errorTok(p.cur(), "expected end of line, found %s", describe(p.cur()))
 	p.synchronize()
 }
 
@@ -1182,7 +1190,7 @@ func (p *Parser) parseAtom() ast.Expr {
 	case token.YIELD:
 		return p.parseYield()
 	default:
-		p.errorf(t.Start, "expected an expression, found %s", describe(t))
+		p.errorTok(t, "expected an expression, found %s", describe(t))
 		p.advance()
 		return &ast.BadExpr{Span: ast.Span{StartPos: t.Start, EndPos: t.End}}
 	}
