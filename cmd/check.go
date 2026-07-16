@@ -6,8 +6,11 @@ import (
 	"path/filepath"
 
 	"github.com/Go-Python-Toolchain/pypls/internal/analyzer"
+	"github.com/Go-Python-Toolchain/pypls/internal/cache"
 	"github.com/spf13/cobra"
 )
+
+var checkNoCache bool
 
 var checkCmd = &cobra.Command{
 	Use:   "check [paths...]",
@@ -17,12 +20,34 @@ var checkCmd = &cobra.Command{
 Each path may be a file or a directory. Directories are searched for files
 ending in .py. When no path is given, the current directory is used. The command
 exits with a non-zero status when any error level problem is found, which makes
-it convenient to run in continuous integration.`,
+it convenient to run in continuous integration.
+
+Results are cached on disk so that unchanged files are not rechecked. Pass
+--no-cache to check everything from scratch.`,
 	RunE: runCheck,
 }
 
 func init() {
+	checkCmd.Flags().BoolVar(&checkNoCache, "no-cache", false, "check every file from scratch, ignoring the cache")
 	rootCmd.AddCommand(checkCmd)
+}
+
+// openCache returns a cache handle, or nil when caching is disabled or the cache
+// cannot be opened. A nil cache is handled transparently by the analyzer.
+func openCache(cmd *cobra.Command) *cache.Cache {
+	if checkNoCache {
+		return nil
+	}
+	dir, err := cache.DefaultDir()
+	if err != nil {
+		return nil
+	}
+	c, err := cache.OpenOrReset(dir)
+	if err != nil {
+		fmt.Fprintf(cmd.ErrOrStderr(), "pypls: cache unavailable, continuing without it: %v\n", err)
+		return nil
+	}
+	return c
 }
 
 func runCheck(cmd *cobra.Command, args []string) error {
@@ -35,6 +60,9 @@ func runCheck(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	pcache := openCache(cmd)
+	defer pcache.Close()
+
 	out := cmd.OutOrStdout()
 	total := 0
 	errorCount := 0
@@ -44,7 +72,7 @@ func runCheck(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		diags := analyzer.Check(file, string(source))
+		diags := analyzer.CheckCached(pcache, file, string(source))
 		for _, d := range diags {
 			fmt.Fprintf(out, "%s:%d:%d: %s: %s\n",
 				file, d.Range.Start.Line, d.Range.Start.Column, d.Severity, d.Message)

@@ -13,9 +13,10 @@ Source text moves through a small set of stages, each in its own package under `
 5. `diagnostic` defines the shape of a reported problem, mirroring the Language Server Protocol.
 6. `types` defines the type lattice and the rules for combining and comparing types.
 7. `checker` performs local type inference and reports type problems.
-8. `analyzer` runs the pipeline and returns diagnostics for a file.
+8. `cache` is a persistent store that lets unchanged inputs skip recomputation.
+9. `analyzer` runs the pipeline and returns diagnostics for a file.
 
-Later stages (caching and the language server) build on these foundations without changing them.
+Later stages (the language server) build on these foundations without changing them.
 
 ## Diagnostics
 
@@ -32,6 +33,14 @@ The `checker` package infers types locally: within a function or module it reaso
 The guiding rule is to stay silent when a type is not known. Unknown types are treated as compatible with everything, so untyped code produces no diagnostics at all. The checker only reports a problem when it is confident: an annotated assignment whose value has a clearly incompatible builtin type, or a binary operation between two known builtin types that Python does not allow, such as adding a string to an integer. This keeps the signal high and false positives near zero.
 
 The type lattice in the `types` package is coarse on purpose: scalars, the common containers, callables, and an explicit Unknown. Numeric widening follows Python, so an integer fits where a float is expected and a bool fits where an int is expected.
+
+## Caching
+
+The `cache` package is a persistent key-value store backed by BadgerDB, kept under the standard cache directory (`~/.cache/gpt/pypls`, honoring `XDG_CACHE_HOME`). Values are encoded with msgpack. Every key carries a schema version, so a change to a stored value's shape quietly retires old entries.
+
+The `analyzer` uses the cache to skip work: a check result is stored under the hash of the file's content, so an unchanged file is served from the cache and any edit produces a new key that misses and is recomputed. On a ten thousand line file this turns a full check of around twenty milliseconds into a cache hit of well under a millisecond.
+
+The cache is defensive. A read or decode failure is treated as a miss rather than an error, and a cache directory that cannot be opened is reset and recreated once, so a damaged cache slows the tool down at worst rather than breaking it. This same store will later hold resolved types for the standard library and popular packages, so that heavy cross-module analysis is done once and reused.
 
 ## Positions
 

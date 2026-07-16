@@ -33,10 +33,14 @@ pypls check src/
 ```
 
 `check` parses the given files or directories and reports any problems it finds,
-one per line, as `file:line:column: severity: message`. It exits with a non-zero
-status when any error is found, so it fits cleanly into continuous integration.
+one per line, as `file:line:column: severity: message`. It reports both syntax
+errors and type problems, and exits with a non-zero status when any error is
+found, so it fits cleanly into continuous integration.
 
-More commands land as the type checker and language server come online.
+Results are cached on disk under your cache directory, so unchanged files are not
+rechecked. Pass `--no-cache` to check everything from scratch.
+
+More commands land as the language server comes online.
 
 ## Design
 
