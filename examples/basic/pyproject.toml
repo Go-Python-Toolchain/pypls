@@ -1,0 +1,3 @@
+[tool.pypls]
+python = "python3.12"
+exclude = ["build", "*.gen.py"]

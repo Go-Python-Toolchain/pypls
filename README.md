@@ -76,6 +76,16 @@ It speaks the Language Server Protocol over stdin and stdout, publishes syntax
 and type diagnostics as you type, re-checks only the parts of a file that
 changed, and offers basic completion.
 
+## Documentation
+
+- [Getting started](docs/getting-started.md): install pypls and run your first
+  check.
+- [Tutorial](docs/tutorial.md): a hands-on walkthrough that catches real
+  problems, fixes them, and shows strict mode and configuration.
+- [Editor setup](docs/editors.md): wire `pypls lsp` into VS Code or Neovim for
+  live diagnostics.
+- [examples/](examples/basic): a small runnable project you can check right away.
+
 ## Design
 
 - Persistent daemon with incremental analysis.
