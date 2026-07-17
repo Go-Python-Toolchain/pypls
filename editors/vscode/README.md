@@ -18,20 +18,31 @@ If `pypls version` prints a version in your terminal, the extension can find it.
 
 ## Install the extension
 
-Install the packaged extension file (`.vsix`) with either the command line or
-the VS Code UI.
+The extension is distributed as a `.vsix` file on the GitHub releases page, not
+through the Marketplace. VS Code installs `.vsix` files directly.
 
-Command line:
+1. Download `pypls.vsix`. This link always points at the newest release:
+   https://github.com/Go-Python-Toolchain/pypls/releases/latest/download/pypls.vsix
+   To pin a version instead, pick it from the releases page:
+   https://github.com/Go-Python-Toolchain/pypls/releases
 
-```
-code --install-extension pypls.vsix
-```
+2. Install it, either from the command line:
 
-VS Code UI: open the Extensions view, click the `...` menu at the top, choose
-"Install from VSIX...", and pick `pypls.vsix`.
+   ```
+   code --install-extension pypls.vsix
+   ```
 
-Each release on GitHub attaches a `pypls.vsix` file:
-https://github.com/Go-Python-Toolchain/pypls/releases
+   (Use `codium` for VSCodium. Cursor and similar editors accept the file
+   through their own extensions menu.)
+
+   Or from the VS Code UI: open the Extensions view, click the `...` menu at the
+   top, choose "Install from VSIX...", and pick `pypls.vsix`. Reload if asked.
+
+3. Open a Python file. Diagnostics appear as you type.
+
+To update, download a newer `pypls.vsix` and install it the same way; it
+replaces the old one. To remove it, run
+`code --uninstall-extension go-python-toolchain.pypls`.
 
 ## What you get
 
