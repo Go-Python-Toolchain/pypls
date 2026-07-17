@@ -83,59 +83,49 @@ attached to the buffer.
 
 ## VS Code
 
-There is no dedicated pypls extension yet, but VS Code talks to any language
-server through a small client extension. The minimal version is a handful of
-lines.
+There is a pypls extension for VS Code. It is a thin client that starts
+`pypls lsp` and shows its results as you type, so first make sure pypls itself
+is installed (`pypls version` should print a version).
 
-Create an extension folder with this `package.json`:
+### Install the packaged extension
 
-```json
-{
-  "name": "pypls-vscode",
-  "displayName": "pypls",
-  "version": "0.0.1",
-  "engines": { "vscode": "^1.75.0" },
-  "activationEvents": ["onLanguage:python"],
-  "main": "./extension.js",
-  "dependencies": {
-    "vscode-languageclient": "^9.0.0"
-  }
-}
+Every release attaches a `pypls.vsix` file:
+https://github.com/Go-Python-Toolchain/pypls/releases
+
+Download it, then install with the command line:
+
+```
+code --install-extension pypls.vsix
 ```
 
-And this `extension.js`:
+Or from the VS Code UI: open the Extensions view, click the `...` menu at the
+top, choose "Install from VSIX...", and pick the file you downloaded.
 
-```javascript
-const { LanguageClient } = require("vscode-languageclient/node");
+Open a Python file and diagnostics appear as you type. No configuration is
+needed if `pypls` is on your PATH.
 
-let client;
+### Settings
 
-function activate(context) {
-  const serverOptions = {
-    command: "pypls",
-    args: ["lsp"],
-  };
-  const clientOptions = {
-    documentSelector: [{ scheme: "file", language: "python" }],
-  };
-  client = new LanguageClient("pypls", "pypls", serverOptions, clientOptions);
-  context.subscriptions.push(client.start());
-}
+- `pypls.path`: path to the pypls executable. Leave it as `pypls` to use the one
+  on your PATH.
+- `pypls.trace.server`: set to `messages` or `verbose` to log the traffic
+  between VS Code and the server when you are diagnosing a problem.
 
-function deactivate() {
-  return client ? client.stop() : undefined;
-}
+The command "pypls: Restart Language Server" restarts the server without
+reloading the window.
 
-module.exports = { activate, deactivate };
+### Build the extension from source
+
+The extension lives in the pypls repository under `editors/vscode`. To build the
+`.vsix` yourself:
+
+```
+cd editors/vscode
+npm install
+npm run package
 ```
 
-Run `npm install` in the folder, then open it in VS Code and press `F5` to
-launch an Extension Development Host. Open a Python file there and pypls
-diagnostics appear as you type.
-
-If you prefer not to write an extension, a generic LSP bridge extension that
-lets you register an arbitrary `stdio` server works too: set the command to
-`pypls` and the argument to `lsp`, with `python` as the language.
+That writes `pypls.vsix`, which you install with the same steps as above.
 
 ## Troubleshooting
 

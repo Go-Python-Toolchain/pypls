@@ -1,0 +1,79 @@
+{
+  "name": "pypls",
+  "displayName": "pypls",
+  "description": "Fast, incremental type checking and diagnostics for Python, powered by the pypls language server.",
+  "version": "0.1.0",
+  "publisher": "go-python-toolchain",
+  "license": "Apache-2.0",
+  "homepage": "https://go-python-toolchain.github.io/website/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Go-Python-Toolchain/pypls.git",
+    "directory": "editors/vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/Go-Python-Toolchain/pypls/issues"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "keywords": [
+    "python",
+    "type checker",
+    "language server",
+    "lsp",
+    "diagnostics"
+  ],
+  "activationEvents": [
+    "onLanguage:python"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "pypls",
+      "properties": {
+        "pypls.path": {
+          "type": "string",
+          "default": "pypls",
+          "description": "Path to the pypls executable. Leave as the default to find it on your PATH."
+        },
+        "pypls.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Log the traffic between VS Code and the pypls language server."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "pypls.restart",
+        "title": "pypls: Restart Language Server"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package --no-dependencies -o pypls.vsix"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.75.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.2",
+    "typescript": "^5.7.2"
+  }
+}
