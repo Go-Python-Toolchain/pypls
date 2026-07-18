@@ -21,3 +21,14 @@ clients/*/build/
 
 # Local cache used by pypls at runtime
 /.pypls-cache/
+
+# Benchmark workspace: cloned subjects (Django/FastAPI/NumPy), installed
+# competitor tools (pyright/mypy), and raw measurement logs. Heavy and
+# reproducible, so it is never committed. The runnable harness lives in
+# examples/benchmark/ and IS committed; only its work/ output is ignored.
+/benchmark/
+examples/benchmark/work/
+
+# Python virtualenvs in examples
+examples/**/.venv/
+.venv/
